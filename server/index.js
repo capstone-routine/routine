@@ -21,6 +21,8 @@ app.use('/api', require('./LOGOUT'));
 app.use('/api', require('./LOGINCHECK'));
 app.use('/api', require('./SIGNUP'));
 app.use('/api', require('./USERTYPE'));
+app.use('/api', require('./GOAL'));
+app.use('/api', require('./PURPOSE'));
 
 // 사용자 데이터를 가져오는 API
 app.get('/api/users', (req, res) => {
