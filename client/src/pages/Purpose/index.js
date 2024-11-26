@@ -12,21 +12,31 @@ function Purpose() {
     const [contentData, setContentData] = useState({ mainGoal: ["", "", ""], achievedList: ["", "", ""] });
 
     useEffect(() => {
-        // Fetch data from the server
-        axios
-            .get("/api/purpose")
+        // Fetch purpose data
+        axios.get("/http://localhost:3000/api/purpose")
             .then((response) => {
                 if (response.data) {
                     const { mainGoal, achievedList } = response.data;
-
-                    // Ensure only 3 items are shown, filling with empty strings if less than 3
-                    setContentData({
+                    setPurposeData({
                         mainGoal: mainGoal.split(",").slice(0, 3).concat(Array(3).fill("")).slice(0, 3),
                         achievedList: achievedList.split(",").slice(0, 3).concat(Array(3).fill("")).slice(0, 3)
                     });
                 }
             })
             .catch((error) => console.error("Error fetching purpose data:", error));
+
+        // Fetch achieve data
+        axios.get("http://localhost:3000/api/achieve")
+            .then((response) => {
+                if (response.data) {
+                    const { mainGoal, achievedList } = response.data;
+                    setAchieveData({
+                        mainGoal: mainGoal.split(",").slice(0, 3).concat(Array(3).fill("")).slice(0, 3),
+                        achievedList: achievedList.split(",").slice(0, 3).concat(Array(3).fill("")).slice(0, 3)
+                    });
+                }
+            })
+            .catch((error) => console.error("Error fetching achieve data:", error));
     }, []);
 
     const handleEdit = () => {
