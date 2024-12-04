@@ -39,7 +39,8 @@ function PurposeInput() {
             })
             .catch((error) => {
                 console.error("세션 확인 중 오류 발생:", error);
-                alert("세션 확인 중 문제가 발생했습니다. 다시 시도해주세요.");
+                alert("로그인이 필요합니다. 로그인 페이지로 이동합니다.");
+                navigate("/SignIn");
             });
     }, [selectedNumber]);
     
