@@ -100,7 +100,7 @@ function Purpose() {
                         onDelete={handleDelete} // Pass the delete function
                     />
                 </MainContent>
-                <SideContent text="안녕하세요. 저는 메인 목적을 이루기 위해..." />
+                <SideContent/>
             </Wrap>
         </Intro>
     );
