@@ -1,24 +1,36 @@
 import React, { useEffect, useState } from "react";
 import styled from "styled-components";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
 function MyPage() {
   const [userData, setUserData] = useState({ name: "", type: "" });
   const [reviews, setReviews] = useState([]);
+  const navigate = useNavigate();
+
+  // 타입별 경로 매핑
+  const typePageMap = {
+    "Balanced Type": "/typetest/result1",
+    "Perfectionist": "/typetest/result2",
+    "Spontaneous Type": "/typetest/result3",
+    "Social Type": "/typetest/result4",
+    "Emotional Type": "/typetest/result5",
+    "Goal-Oriented Type": "/typetest/result6",
+  };
 
   // Fetch user data and reviews
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-          const response = await axios.get("http://localhost:3000/api/userdata");
-          setUserData({
-              name: response.data.userName,
-              type: response.data.userType,
-          });
+        const response = await axios.get("http://localhost:3000/api/userdata");
+        setUserData({
+          name: response.data.userName,
+          type: response.data.userType,
+        });
       } catch (error) {
-          console.error("Error fetching user data:", error);
+        console.error("Error fetching user data:", error);
       }
-  };
+    };
 
     const fetchReviews = async () => {
       try {
@@ -33,6 +45,15 @@ function MyPage() {
     fetchReviews();
   }, []);
 
+  // 타입 클릭 시 이동
+  const handleTypeClick = () => {
+    if (typePageMap[userData.type]) {
+      navigate(typePageMap[userData.type]);
+    } else {
+      alert("해당 타입에 대한 결과 페이지가 없습니다.");
+    }
+  };
+
   return (
     <Container>
       <Header>My Page</Header>
@@ -43,7 +64,10 @@ function MyPage() {
         </UserField>
         <UserField>
           <Label>Type:</Label>
-          <Value>{userData.type || "No type assigned"}</Value>
+          {/* 타입 클릭 이벤트 추가 */}
+          <ClickableValue onClick={handleTypeClick}>
+            {userData.type || "No type assigned"}
+          </ClickableValue>
         </UserField>
       </UserInfo>
 
@@ -112,6 +136,16 @@ const Label = styled.span`
 
 const Value = styled.span`
   color: #333;
+`;
+
+const ClickableValue = styled(Value)`
+  cursor: pointer;
+  text-decoration: underline;
+  color: #007bff;
+
+  &:hover {
+    color: #0056b3;
+  }
 `;
 
 const ReviewSection = styled.div`
