@@ -9,7 +9,7 @@ const port = 3000;
 // CORS 설정
 app.use(cors({
     origin: 'http://localhost:3001', // 클라이언트 도메인
-    methods: ['GET', 'POST', 'DELETE'], // 허용할 메소드
+    methods: ['GET', 'POST', 'DELETE', 'PUT'], // 허용할 메소드
     allowedHeaders: ['Content-Type'],
     credentials: true // 클라이언트 쿠키 허용
 }));
@@ -23,6 +23,7 @@ app.use('/api', require('./SIGNUP'));
 app.use('/api', require('./USERTYPE'));
 app.use('/api', require('./MYPAGE'));
 app.use('/api', require('./PURPOSE'));
+app.use('/api', require('./ROUTINE'));
 
 // 사용자 데이터를 가져오는 API
 app.get('/api/users', (req, res) => {
