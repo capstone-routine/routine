@@ -1,13 +1,11 @@
 import React, { useState } from "react";
 import styled from "styled-components";
-import {
-  MessageList,
-  Message,
-  MessageInput,
-  TypingIndicator,
-} from "@chatscope/chat-ui-kit-react";
+import botIcon from "../../assets/img/bot.png"; // Adjust the path if necessary
+import userIcon from "../../assets/img/profile.png"; // Adjust the path if necessary
+import { MessageList, MessageInput, TypingIndicator } from "@chatscope/chat-ui-kit-react";
 
-const API_KEY = ""; // API 키를 여기에 입력하세요.
+const API_KEY = ""; // API key here
+
 const systemMessage = {
   role: "system",
   content:
@@ -17,8 +15,12 @@ const systemMessage = {
 function SideContent() {
   const [messages, setMessages] = useState([
     {
-      message:
-        "안녕하세요 저는 당신의 메인 목적을 이루기 위해서 필요한 수행 리스트를 6단계로 뽑아주는 AI챗봇입니다. 메인 목적을 적어주세요:)",
+      message: (
+        <>
+          안녕하세요 저는 당신의 메인 목적을 이루기 위해서 필요한 수행 리스트를 6단계로 뽑아주는 AI챗봇입니다.<br />
+          메인 목적을 적어주세요: &#41;
+        </>
+      ),
       sentTime: "just now",
       sender: "ChatGPT",
     },
@@ -41,12 +43,7 @@ function SideContent() {
 
   async function processMessageToChatGPT(chatMessages) {
     let apiMessages = chatMessages.map((messageObject) => {
-      let role = "";
-      if (messageObject.sender === "ChatGPT") {
-        role = "assistant";
-      } else {
-        role = "user";
-      }
+      let role = messageObject.sender === "ChatGPT" ? "assistant" : "user";
       return { role: role, content: messageObject.message };
     });
 
@@ -85,24 +82,23 @@ function SideContent() {
           typingIndicator={isTyping ? <TypingIndicator content="ChatGPT is typing" /> : null}
         >
           {messages.map((message, i) => (
-            <StyledMessage
-              key={i}
-              model={{
-                message: message.message,
-                sentTime: message.sentTime,
-                sender: message.sender === "ChatGPT" ? "ChatGPT" : "You",
-              }}
-              className={message.sender === "ChatGPT" ? "chatgpt" : "user"}
-            />
+            <MessageRow key={i} className={message.sender === "ChatGPT" ? "chatgpt" : "user"}>
+              <MessageIcon>
+                {message.sender === "ChatGPT" ? (
+                  <img src={botIcon} alt="ChatGPT" width="40" height="40" />
+                ) : (
+                  <img src={userIcon} alt="User" width="40" height="40" />
+                )}
+              </MessageIcon>
+              <StyledMessage className={message.sender === "ChatGPT" ? "chatgpt" : "user"}>
+                {message.message}
+              </StyledMessage>
+            </MessageRow>
           ))}
         </MessageList>
       </MessageListContainer>
       <MessageInputContainer>
-        <MessageInput
-          placeholder="메시지를 입력하세요"
-          onSend={handleSend}
-          attachButton={false} // 첨부파일 버튼 제거
-        />
+        <MessageInput placeholder="메시지를 입력하세요" onSend={handleSend} attachButton={false} />
       </MessageInputContainer>
     </ChatWrapper>
   );
@@ -111,23 +107,10 @@ function SideContent() {
 export default SideContent;
 
 // Styled components
-const SideContentWrapper = styled.div`
-  padding: 20px;
-  background: #fff;
-  border-radius: 10px;
-  border: 2px solid #fbe0d1;
-  margin-left: 20px;
-  width: 300px;
-`;
-
-const AppContainer = styled.div`
-  position: relative;
-  height: 570px;
-`;
 const ChatWrapper = styled.div`
   display: flex;
   flex-direction: column;
-  height: 100%; /* Set to parent's height or use a specific value */
+  height: 100%;
   position: relative;
   background: #fff;
   border-radius: 10px;
@@ -135,13 +118,13 @@ const ChatWrapper = styled.div`
 `;
 
 const MessageListContainer = styled.div`
-  flex: 1; /* Allows the message list to take up all available space */
-  overflow-y: auto; /* Enables scrolling */
+  flex: 1;
+  overflow-y: auto;
   padding: 10px;
 `;
 
 const MessageInputContainer = styled.div`
-  position: sticky; /* Keeps the input box fixed at the bottom */
+  position: sticky;
   bottom: 0;
   background: white;
   padding: 10px;
@@ -149,7 +132,26 @@ const MessageInputContainer = styled.div`
   border-radius: 10px;
 `;
 
-const StyledMessage = styled(Message)`
+const MessageRow = styled.div`
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+
+  &.user {
+    flex-direction: row-reverse;
+  }
+`;
+
+const MessageIcon = styled.div`
+  margin: 0 10px;
+`;
+
+const StyledMessage = styled.div`
+  max-width: 70%;
+  padding: 10px;
+  border-radius: 10px;
+  font-size: 14px;
+
   &.chatgpt {
     background: #f5f5f5;
     color: #333;
@@ -160,6 +162,5 @@ const StyledMessage = styled(Message)`
     background: #d1e7fd;
     color: #000;
     border-radius: 10px 10px 0 10px;
-    align-self: flex-end;
   }
 `;
