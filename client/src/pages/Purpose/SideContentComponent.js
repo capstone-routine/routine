@@ -15,12 +15,8 @@ const systemMessage = {
 function SideContent() {
   const [messages, setMessages] = useState([
     {
-      message: (
-        <>
-          안녕하세요 저는 당신의 메인 목적을 이루기 위해서 필요한 수행 리스트를 6단계로 뽑아주는 AI챗봇입니다.<br />
-          메인 목적을 적어주세요: &#41;
-        </>
-      ),
+      message:
+        "안녕하세요 저는 당신의 메인 목적을 이루기 위해서 필요한 수행 리스트를 6단계로 뽑아주는 AI챗봇입니다. <br/> 메인 목적을 적어주세요:)",
       sentTime: "just now",
       sender: "ChatGPT",
     },
