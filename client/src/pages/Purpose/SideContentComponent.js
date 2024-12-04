@@ -1,115 +1,110 @@
 import React, { useState } from "react";
 import styled from "styled-components";
 import {
-  MainContainer,
-  ChatContainer,
   MessageList,
   Message,
   MessageInput,
-  TypingIndicator
+  TypingIndicator,
 } from "@chatscope/chat-ui-kit-react";
 
-const API_KEY = "";
-// "Explain things like you would to a 10 year old learning how to code."
-const systemMessage = { //  Explain things like you're talking to a software professional with 5 years of experience.
-  "role": "system", "content": "당신은 유저의 메인 목적을 이루기 위해서 필요한 수행 리스트를 6단계로 뽑아주는 AI챗봇입니다."
-}
+const API_KEY = ""; // API 키를 여기에 입력하세요.
+const systemMessage = {
+  role: "system",
+  content:
+    "당신은 유저의 메인 목적을 이루기 위해서 필요한 수행 리스트를 6단계로 뽑아주는 AI챗봇입니다.",
+};
 
 function SideContent() {
-    const [messages, setMessages] = useState([
-        {
-          message: "안녕하세요 저는 당신의 메인 목적을 이루기 위해서 필요한 수행 리스트를 6단계로 뽑아주는 AI챗봇입니다. 메인 목적을 적어주세요:)",
-          sentTime: "just now",
-          sender: "ChatGPT"
-        }
-      ]);
-      const [isTyping, setIsTyping] = useState(false);
-    
-      const handleSend = async (message) => {
-        const newMessage = {
-          message,
-          direction: 'outgoing',
-          sender: "user"
-        };
-    
-        const newMessages = [...messages, newMessage];
-        
-        setMessages(newMessages);
-    
-        // Initial system message to determine ChatGPT functionality
-        // How it responds, how it talks, etc.
-        setIsTyping(true);
-        await processMessageToChatGPT(newMessages);
-      };
-    
-      async function processMessageToChatGPT(chatMessages) { // messages is an array of messages
-        // Format messages for chatGPT API
-        // API is expecting objects in format of { role: "user" or "assistant", "content": "message here"}
-        // So we need to reformat
-    
-        let apiMessages = chatMessages.map((messageObject) => {
-          let role = "";
-          if (messageObject.sender === "ChatGPT") {
-            role = "assistant";
-          } else {
-            role = "user";
-          }
-          return { role: role, content: messageObject.message}
-        });
-    
-    
-        // Get the request body set up with the model we plan to use
-        // and the messages which we formatted above. We add a system message in the front to'
-        // determine how we want chatGPT to act. 
-        const apiRequestBody = {
-          "model": "gpt-3.5-turbo",
-          "messages": [
-            systemMessage,  // The system message DEFINES the logic of our chatGPT
-            ...apiMessages // The messages from our chat with ChatGPT
-          ],
-          "max_tokens": 100
-        }
-    
-        await fetch("https://api.openai.com/v1/chat/completions", 
-        {
-          method: "POST",
-          headers: {
-            "Authorization": "Bearer " + API_KEY,
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify(apiRequestBody)
-        }).then((data) => {
-          return data.json();
-        }).then((data) => {
-          console.log(data);
-          setMessages([...chatMessages, {
-            message: data.choices[0].message.content,
-            sender: "ChatGPT"
-          }]);
-          setIsTyping(false);
-        });
+  const [messages, setMessages] = useState([
+    {
+      message:
+        "안녕하세요 저는 당신의 메인 목적을 이루기 위해서 필요한 수행 리스트를 6단계로 뽑아주는 AI챗봇입니다. 메인 목적을 적어주세요:)",
+      sentTime: "just now",
+      sender: "ChatGPT",
+    },
+  ]);
+  const [isTyping, setIsTyping] = useState(false);
+
+  const handleSend = async (message) => {
+    const newMessage = {
+      message,
+      direction: "outgoing",
+      sender: "user",
+    };
+
+    const newMessages = [...messages, newMessage];
+    setMessages(newMessages);
+
+    setIsTyping(true);
+    await processMessageToChatGPT(newMessages);
+  };
+
+  async function processMessageToChatGPT(chatMessages) {
+    let apiMessages = chatMessages.map((messageObject) => {
+      let role = "";
+      if (messageObject.sender === "ChatGPT") {
+        role = "assistant";
+      } else {
+        role = "user";
       }
-    
+      return { role: role, content: messageObject.message };
+    });
+
+    const apiRequestBody = {
+      model: "gpt-3.5-turbo",
+      messages: [systemMessage, ...apiMessages],
+      max_tokens: 100,
+    };
+
+    await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: "Bearer " + API_KEY,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(apiRequestBody),
+    })
+      .then((data) => data.json())
+      .then((data) => {
+        setMessages([
+          ...chatMessages,
+          {
+            message: data.choices[0].message.content,
+            sender: "ChatGPT",
+          },
+        ]);
+        setIsTyping(false);
+      });
+  }
 
   return (
-    <div className="App">
-      <div style={{ position:"relative", height: "800px", width: "700px"  }}>
-        <MainContainer>
-          <ChatContainer>       
-            <MessageList 
-              scrollBehavior="smooth" 
-              typingIndicator={isTyping ? <TypingIndicator content="ChatGPT is typing" /> : null}
-            >
-              {messages.map((message, i) => {
-                console.log(message)
-                return <Message key={i} model={message} />
-              })}
-            </MessageList>
-            <MessageInput placeholder="Type message here" onSend={handleSend} />        
-          </ChatContainer>
-        </MainContainer>
-      </div>
-    </div>
+    <ChatWrapper>
+      <MessageListContainer>
+        <MessageList
+          scrollBehavior="smooth"
+          typingIndicator={isTyping ? <TypingIndicator content="ChatGPT is typing" /> : null}
+        >
+          {messages.map((message, i) => (
+            <StyledMessage
+              key={i}
+              model={{
+                message: message.message,
+                sentTime: message.sentTime,
+                sender: message.sender === "ChatGPT" ? "ChatGPT" : "You",
+              }}
+              className={message.sender === "ChatGPT" ? "chatgpt" : "user"}
+            />
+          ))}
+        </MessageList>
+      </MessageListContainer>
+      <MessageInputContainer>
+        <MessageInput
+          placeholder="메시지를 입력하세요"
+          onSend={handleSend}
+          attachButton={false} // 첨부파일 버튼 제거
+        />
+      </MessageInputContainer>
+    </ChatWrapper>
   );
 }
 
@@ -117,26 +112,54 @@ export default SideContent;
 
 // Styled components
 const SideContentWrapper = styled.div`
-  flex: 1;
   padding: 20px;
   background: #fff;
   border-radius: 10px;
   border: 2px solid #fbe0d1;
   margin-left: 20px;
+  width: 300px;
 `;
 
 const AppContainer = styled.div`
   position: relative;
-  height: 800px;
-  width: 700px;
+  height: 570px;
+`;
+const ChatWrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+  height: 100%; /* Set to parent's height or use a specific value */
+  position: relative;
+  background: #fff;
+  border-radius: 10px;
+  border: 2px solid #fbe0d1;
 `;
 
-const ChatWrapper = styled(MainContainer)`
-  height: 100%;
-  width: 100%;
+const MessageListContainer = styled.div`
+  flex: 1; /* Allows the message list to take up all available space */
+  overflow-y: auto; /* Enables scrolling */
+  padding: 10px;
 `;
 
-const ChatBox = styled(ChatContainer)`
-  height: 100%;
-  width: 100%;
+const MessageInputContainer = styled.div`
+  position: sticky; /* Keeps the input box fixed at the bottom */
+  bottom: 0;
+  background: white;
+  padding: 10px;
+  border-top: 1px solid #ddd;
+  border-radius: 10px;
+`;
+
+const StyledMessage = styled(Message)`
+  &.chatgpt {
+    background: #f5f5f5;
+    color: #333;
+    border-radius: 10px 10px 10px 0;
+  }
+
+  &.user {
+    background: #d1e7fd;
+    color: #000;
+    border-radius: 10px 10px 0 10px;
+    align-self: flex-end;
+  }
 `;
