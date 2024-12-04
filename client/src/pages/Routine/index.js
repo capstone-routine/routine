@@ -10,50 +10,50 @@ function Routine() {
   const [contentData, setContentData] = useState({ mainGoal: ["", "", ""], achievedList: ["", "", ""] });  
 
   useEffect(() => {
-    axios.get("http://localhost:3000/api/session") // 세션 확인 API
-        .then((response) => {
-            if (response.data.user_id) {
-                // 로그인된 상태: 데이터 로드
-                axios
-                    .get(`http://localhost:3000/api/purposefetch?user_id=${response.data.user_id}`)
-                    .then((res) => {
-                        setContentData({
-                            mainGoal: res.data.mainGoals || ["", "", ""]
-                        });
-                    })
-                    .catch((err) => console.error("데이터 로드 오류:", err));
-                    // 루틴 정보 가져오기
-                    axios
-                    .get(`http://localhost:3000/api/routinefetch?user_id=${response.data.user_id}`)
-                    .then((res) => {
-                      const fetchedTasks = res.data.tasks || [];
-                      const mappedTasks = fetchedTasks.map((task) => ({
-                        ...task,
-                        completed: task.is_completed === 1,
-                      }));
-                      const paddedTasks = [...fetchedTasks, ...Array(10 - fetchedTasks.length).fill(null)];
-                      setTasks(paddedTasks.slice(0, 10)); // 항상 10개 유지
-                    })
-                    .catch((err) => {
-                      console.error("Routine fetch failed:", err.response?.data || err.message);
-                    });
-            } else {
-                // 로그인되지 않은 상태: 빈 값 유지
-                setContentData({
-                    mainGoal: ["", "", ""]
-                });
-            }
-        })
-        
-        .catch((error) => {
-            console.error("세션 확인 오류:", error);
-            setContentData({
-                mainGoal: ["", "", ""]
+    axios
+      .get("http://localhost:3000/api/session") // 세션 확인 API
+      .then((response) => {
+        if (response.data.user_id) {
+          // 로그인된 상태: 데이터 로드
+          axios
+            .get(`http://localhost:3000/api/purposefetch?user_id=${response.data.user_id}`)
+            .then((res) => {
+              setContentData({
+                mainGoal: res.data.mainGoals || ["", "", ""],
+              });
+            })
+            .catch((err) => console.error("데이터 로드 오류:", err));
+  
+          // 루틴 정보 가져오기
+          axios
+            .get(`http://localhost:3000/api/routinefetch?user_id=${response.data.user_id}`)
+            .then((res) => {
+              const fetchedTasks = res.data.tasks || [];
+              const mappedTasks = fetchedTasks.map((task) => ({
+                ...task,
+                completed: task.is_completed === 1, // 서버의 is_completed 값을 completed로 매핑
+              }));
+              const paddedTasks = [...mappedTasks, ...Array(10 - fetchedTasks.length).fill(null)];
+              setTasks(paddedTasks.slice(0, 10)); // 항상 10개 유지
+            })
+            .catch((err) => {
+              console.error("Routine fetch failed:", err.response?.data || err.message);
             });
-        }); 
-
-}, []);
-
+        } else {
+          // 로그인되지 않은 상태: 빈 값 유지
+          setContentData({
+            mainGoal: ["", "", ""],
+          });
+        }
+      })
+      .catch((error) => {
+        console.error("세션 확인 오류:", error);
+        setContentData({
+          mainGoal: ["", "", ""],
+        });
+      });
+  }, []);
+  
 // Task addition
 const handleAddTask = (e) => {
   if (e.key === "Enter" && inputValue.trim() !== "") {
@@ -106,10 +106,6 @@ const toggleTask = (index) => {
   taskToToggle.completed = !taskToToggle.completed; // 상태 토글
   setTasks(updatedTasks);
 
-  console.log("토글할 Task ID:", taskToToggle.id);
-  console.log("현재 상태:", taskToToggle.completed);
-
-  // 세션 확인 후 업데이트 요청
   axios
     .get("http://localhost:3000/api/session") // 세션 확인 API 호출
     .then((response) => {
@@ -120,6 +116,7 @@ const toggleTask = (index) => {
           .put("http://localhost:3000/api/routinetoggle", {
             id: taskToToggle.id,
             user_id: userId,
+            is_completed: taskToToggle.completed, // 상태를 서버에 저장
           })
           .then((res) => console.log("Task toggled successfully:", res.data))
           .catch((err) => {
@@ -190,14 +187,20 @@ const typeMapping = {
   시간: "4",
 };
 
+// Task 배경색을 결정하는 함수
 const getTaskColor = (type, completed) => {
   const mappedType = typeMapping[type] || type;
-  if (type === "1") return "#e0e0e0"; // Fixed Schedule (always light gray)
-  if (type === "3") return tertiaryColor; // Leisure Time (always tertiaryColor)
-  if (type === "4") return "#ffffff"; // Time (always white)
-  if (type === "2") return completed ? primaryColor : "#ffffff"; // Main (toggle)
-  return "#ffffff"; // Default white
+
+  if (type === "1") return "#e0e0e0"; // Fixed Schedule
+  if (type === "3") return tertiaryColor; // Leisure Time
+  if (type === "4") return "#ffffff"; // Time
+  if (type === "2") {
+    // Main 일정의 색상 변경 로직
+    return completed ? primaryColor : "#ffffff"; 
+  }
+  return "#ffffff"; // Default color
 };
+
 
 // Determine text color for each task type and state
 const getTextColor = (type, completed) => {
@@ -268,8 +271,8 @@ return (
           key={index}
           onClick={() => toggleTask(index)}
           completed={task?.completed}
-          color={getTaskColor(typeMapping[task?.type] || task?.type, task?.completed)} // Use getTaskColor
-          textColor={getTextColor(typeMapping[task?.type] || task?.type, task?.completed)} // Use getTextColor
+          color={getTaskColor(typeMapping[task?.type] || task?.type, task?.completed)} // 업데이트된 getTaskColor
+          textColor={getTextColor(typeMapping[task?.type] || task?.type, task?.completed)} // 기존 텍스트 색상 로직
           type={task?.type}
         >
           {task && (
@@ -367,8 +370,7 @@ gap: 10px;
 const Task = styled.div`
 background-color: ${(props) => props.color  };
 color: ${(props) => props.textColor};
-border: 1px solid ${(props) =>
-  props.completed ? props.color : "#ccc"}; /* Border matches type color if completed */
+border: 1px solid #ccc;
 height: 40px;
 cursor: ${(props) => (props.type === "4" ? "default" : "pointer")}; /* 시간 is not clickable */
 display: flex;
