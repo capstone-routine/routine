@@ -6,6 +6,7 @@ import axios from "axios";
 function MyPage() {
   const [userData, setUserData] = useState({ name: "", type: "" });
   const [reviews, setReviews] = useState([]);
+  const [error, setError] = useState(null); // 에러 상태 추가
   const navigate = useNavigate();
 
   // 타입별 경로 매핑
@@ -18,55 +19,72 @@ function MyPage() {
     "Goal-Oriented Type": "/typetest/result6",
   };
 
-  // Fetch user data and reviews
   useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        const response = await axios.get("http://localhost:3000/api/userdata");
-        setUserData({
-          name: response.data.userName,
-          type: response.data.userType,
-        });
-      } catch (error) {
-        console.error("Error fetching user data:", error);
-      }
+    const fetchData = async () => {
+      await fetchUserData();
+      await fetchReviews();
     };
 
-    const fetchReviews = async () => {
-      try {
-          const sessionResponse = await axios.get("http://localhost:3000/api/session");
-          const userId = sessionResponse.data.user_id;
-  
-          if (userId) {
-              const reviewResponse = await axios.get(
-                  `http://localhost:3000/api/myreviewfetch?user_id=${userId}`
-              );
-  
-              // 서버에서 받은 데이터 필드 이름을 매핑
-              const mappedReviews = reviewResponse.data.map((review) => ({
-                  successRate: review.success_rate,
-                  strengths: review.achievement,
-                  improvements: review.improvement,
-              }));
-  
-              setReviews(mappedReviews); // 매핑된 데이터를 저장
-          }
-      } catch (error) {
-          console.error("Error fetching reviews:", error);
-      }
-  };
-  
-
-    fetchUserData();
-    fetchReviews();
+    fetchData();
   }, []);
 
-  // 타입 클릭 시 이동
+  const fetchUserData = async () => {
+    try {
+      const response = await axios.get("http://localhost:3000/api/userdata");
+      setUserData({
+        name: response.data.userName,
+        type: response.data.userType,
+      });
+    } catch (error) {
+      setError("Failed to fetch user data.");
+      console.error("Error fetching user data:", error);
+    }
+  };
+
+  const fetchReviews = async () => {
+    try {
+      const sessionResponse = await axios.get("http://localhost:3000/api/session");
+      const userId = sessionResponse.data.user_id;
+
+      if (userId) {
+        const reviewResponse = await axios.get(
+          `http://localhost:3000/api/myreviewfetch?user_id=${userId}`
+        );
+
+        const mappedReviews = reviewResponse.data.map((review) => ({
+          id: review.id, // 각 리뷰의 고유 ID
+          successRate: review.success_rate,
+          strengths: review.achievement,
+          improvements: review.improvement,
+        }));
+
+        setReviews(mappedReviews);
+      }
+    } catch (error) {
+      setError("Failed to fetch reviews.");
+      console.error("Error fetching reviews:", error);
+    }
+  };
+
   const handleTypeClick = () => {
-    if (typePageMap[userData.type]) {
-      navigate(typePageMap[userData.type]);
+    const path = typePageMap[userData.type];
+    if (path) {
+      navigate(path);
     } else {
-      alert("해당 타입에 대한 결과 페이지가 없습니다.");
+      alert(userData.type ? "알 수 없는 타입입니다." : "유저 타입 정보가 없습니다.");
+    }
+  };
+
+  const deleteReview = async (id) => {
+    try {
+      await axios.delete(`http://localhost:3000/api/deletereview`, {
+        data: { id }, // 요청 본문
+        headers: { "Content-Type": "application/json" },
+      });
+      setReviews(reviews.filter((review) => review.id !== id)); // 삭제된 리뷰 제외
+    } catch (error) {
+      setError("Failed to delete the review.");
+      console.error("Error deleting review:", error);
     }
   };
 
@@ -80,18 +98,18 @@ function MyPage() {
         </UserField>
         <UserField>
           <Label>Type:</Label>
-          {/* 타입 클릭 이벤트 추가 */}
-          <ClickableValue onClick={handleTypeClick}>
+          <TypeLink onClick={handleTypeClick}>
             {userData.type || "No type assigned"}
-          </ClickableValue>
+          </TypeLink>
         </UserField>
       </UserInfo>
 
       <ReviewSection>
         <SectionHeader>Reviews</SectionHeader>
+        {error && <ErrorMessage>{error}</ErrorMessage>} {/* 에러 메시지 표시 */}
         {reviews.length > 0 ? (
           reviews.map((review, index) => (
-            <ReviewCard key={index}>
+            <ReviewCard key={review.id}>
               <ReviewHeader>
                 <DayLabel>{`${index + 1}일차`}</DayLabel>
                 <SuccessRate>{review.successRate}%</SuccessRate>
@@ -106,6 +124,9 @@ function MyPage() {
                   <FeedbackText>{review.improvements || "No data"}</FeedbackText>
                 </Feedback>
               </ReviewBody>
+              <DeleteButton onClick={() => deleteReview(review.id)}>
+                Delete
+              </DeleteButton>
             </ReviewCard>
           ))
         ) : (
@@ -154,7 +175,7 @@ const Value = styled.span`
   color: #333;
 `;
 
-const ClickableValue = styled(Value)`
+const TypeLink = styled(Value)`
   cursor: pointer;
   text-decoration: underline;
   color: #007bff;
@@ -215,7 +236,26 @@ const FeedbackText = styled.p`
   color: #333;
 `;
 
+const DeleteButton = styled.button`
+  background-color: #ff4d4f;
+  color: #fff;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 5px;
+  cursor: pointer;
+
+  &:hover {
+    background-color: #d9363e;
+  }
+`;
+
 const NoReviews = styled.p`
   text-align: center;
   color: #999;
+`;
+
+const ErrorMessage = styled.p`
+  color: red;
+  font-size: 14px;
+  text-align: center;
 `;
