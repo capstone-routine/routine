@@ -24,6 +24,7 @@ app.use('/api', require('./USERTYPE'));
 app.use('/api', require('./MYPAGE'));
 app.use('/api', require('./PURPOSE'));
 app.use('/api', require('./ROUTINE'));
+app.use('/api', require('./REVIEW'));
 
 // 사용자 데이터를 가져오는 API
 app.get('/api/users', (req, res) => {

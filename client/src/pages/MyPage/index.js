@@ -34,12 +34,28 @@ function MyPage() {
 
     const fetchReviews = async () => {
       try {
-        const response = await axios.get("/api/reviews");
-        setReviews(response.data); // Expect an array of reviews
+          const sessionResponse = await axios.get("http://localhost:3000/api/session");
+          const userId = sessionResponse.data.user_id;
+  
+          if (userId) {
+              const reviewResponse = await axios.get(
+                  `http://localhost:3000/api/myreviewfetch?user_id=${userId}`
+              );
+  
+              // 서버에서 받은 데이터 필드 이름을 매핑
+              const mappedReviews = reviewResponse.data.map((review) => ({
+                  successRate: review.success_rate,
+                  strengths: review.achievement,
+                  improvements: review.improvement,
+              }));
+  
+              setReviews(mappedReviews); // 매핑된 데이터를 저장
+          }
       } catch (error) {
-        console.error("Error fetching reviews:", error);
+          console.error("Error fetching reviews:", error);
       }
-    };
+  };
+  
 
     fetchUserData();
     fetchReviews();
@@ -83,11 +99,11 @@ function MyPage() {
               <ReviewBody>
                 <Feedback>
                   <FeedbackLabel>Strengths:</FeedbackLabel>
-                  <FeedbackText>{review.strengths}</FeedbackText>
+                  <FeedbackText>{review.strengths || "No data"}</FeedbackText>
                 </Feedback>
                 <Feedback>
                   <FeedbackLabel>Areas for Improvement:</FeedbackLabel>
-                  <FeedbackText>{review.improvements}</FeedbackText>
+                  <FeedbackText>{review.improvements || "No data"}</FeedbackText>
                 </Feedback>
               </ReviewBody>
             </ReviewCard>
