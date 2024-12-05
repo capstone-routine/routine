@@ -75,30 +75,30 @@ function MyPage() {
     }
   };
 
-  const deleteReview = async () => {
+  const deleteReview = async (index) => {
     try {
-      const sessionResponse = await axios.get("http://localhost:3000/api/session");
-      const userId = sessionResponse.data.user_id;
+        // 사용자 세션에서 user_id 가져오기
+        const sessionResponse = await axios.get("http://localhost:3000/api/session");
+        const userId = sessionResponse.data.user_id;
 
-      await axios.delete("http://localhost:3000/api/deletereview", {
-        data: { user_id: userId },
-      });
+        console.log("Delete request with user_id:", userId, "index:", index);
 
-      // 로컬 상태에서 데이터 초기화
-      setReviews((prevReviews) =>
-        prevReviews.map((review) => ({
-          ...review,
-          strengths: null,
-          improvements: null,
-        }))
-      );
+        // 백엔드로 삭제 요청 보내기
+        await axios.delete("http://localhost:3000/api/deletereview", {
+            data: { index, user_id: userId },
+        });
 
-      alert("Review deleted successfully.");
+        // 상태에서 해당 리뷰 제거
+        setReviews((prevReviews) =>
+            prevReviews.filter((_, reviewIndex) => reviewIndex !== index)
+        );
+
+        alert("Review deleted successfully.");
     } catch (error) {
-      setError("Failed to delete the review.");
-      console.error("Error deleting review:", error);
+        console.error("Error deleting review:", error);
+        alert("Failed to delete the review. Please try again.");
     }
-  };
+};
 
   return (
     <Container>
@@ -136,7 +136,7 @@ function MyPage() {
                   <FeedbackText>{review.improvements || "No data"}</FeedbackText>
                 </Feedback>
               </ReviewBody>
-              <DeleteButton onClick={() => deleteReview(review.id)}>
+              <DeleteButton onClick={() => deleteReview(index)}>
                 Delete
               </DeleteButton>
             </ReviewCard>

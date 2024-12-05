@@ -81,26 +81,26 @@ router.get('/routinefetch', (req, res) => {
 
   
 router.put('/routinetoggle', (req, res) => {
-    const { id, user_id } = req.body;
-  
-    if (!id || !user_id) {
-      return res.status(400).json({ error: "Missing id or user_id" });
+  const { id, user_id } = req.body;
+
+  if (id === undefined || user_id === undefined) {
+    return res.status(400).json({ error: "Missing id or user_id" });
+  }
+
+  const query = `UPDATE routine SET is_completed = NOT is_completed WHERE id = ? AND user_id = ?`;
+  db.query(query, [id, user_id], (error, results) => {
+    if (error) {
+      console.error("Database update error:", error);
+      return res.status(500).json({ error: "Database update failed" });
     }
-  
-    const query = `UPDATE routine SET is_completed = NOT is_completed WHERE id = ? AND user_id = ?`;
-    db.query(query, [id, user_id], (error, results) => {
-      if (error) {
-        console.error("Database update error:", error);
-        return res.status(500).json({ error: "Database update failed" });
-      }
-  
-      if (results.affectedRows === 0) {
-        return res.status(404).json({ error: "Task not found" });
-      }
-  
-      res.status(200).json({ message: "Task toggled successfully" });
-    });
+
+    if (results.affectedRows === 0) {
+      return res.status(404).json({ error: "Task not found" });
+    }
+
+    res.status(200).json({ message: "Task toggled successfully" });
   });
+});
 
   
   router.delete("/routinedelete", (req, res) => {
@@ -161,6 +161,7 @@ router.delete('/routinereset', (req, res) => {
   });
 });
 
+
 router.post("/routinesubmit", async (req, res) => {
   const { user_id, success_rate, achievement, improvement } = req.body;
 
@@ -170,33 +171,51 @@ router.post("/routinesubmit", async (req, res) => {
     return res.status(400).json({ message: "Invalid data received" });
   }
 
-  try {
-    const query = `
-      INSERT INTO review (user_id, success_rate, achievement, improvement, created_at, updated_at)
-      VALUES (?, ?, ?, ?, NOW(), NOW())
-      ON DUPLICATE KEY UPDATE
-        success_rate = VALUES(success_rate),
-        achievement = IF(VALUES(achievement) IS NOT NULL, VALUES(achievement), achievement),
-        improvement = IF(VALUES(improvement) IS NOT NULL, VALUES(improvement), improvement),
-        updated_at = NOW()
+  // Step 1: Find the lowest available ID
+  const findLowestIdQuery = `
+    SELECT id FROM review WHERE user_id = ? ORDER BY id ASC
+  `;
+
+  db.query(findLowestIdQuery, [user_id], (findErr, results) => {
+    if (findErr) {
+      console.error("Error finding lowest ID:", findErr);
+      return res.status(500).json({ error: "Failed to find lowest available ID" });
+    }
+
+    const existingIds = results.map((row) => row.id);
+    let newId = -1;
+
+    for (let i = 0; i <= 9; i++) {
+      if (!existingIds.includes(i)) {
+        newId = i;
+        break;
+      }
+    }
+
+    if (newId === -1) {
+      return res.status(400).json({ error: "No available ID slots. Maximum 10 reviews allowed." });
+    }
+
+    // Step 2: Insert the review with the calculated ID
+    const insertQuery = `
+      INSERT INTO review (id, user_id, success_rate, achievement, improvement, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, NOW(), NOW())
     `;
 
-    db.query(query, [user_id, success_rate, achievement || null, improvement || null], (err, result) => {
-      if (err) {
-        console.error("리뷰 저장 오류:", err);
-        return res.status(500).json({ error: "리뷰 저장 실패" });
-      }
+    db.query(
+      insertQuery,
+      [newId, user_id, success_rate, achievement || null, improvement || null],
+      (insertErr, result) => {
+        if (insertErr) {
+          console.error("Error inserting review:", insertErr);
+          return res.status(500).json({ error: "Failed to save the review" });
+        }
 
-      if (result.affectedRows > 0) {
-        res.status(200).json({ message: "리뷰가 성공적으로 저장되었습니다." });
-      } else {
-        res.status(500).json({ error: "리뷰 저장에 실패했습니다." });
+        console.log("Review saved successfully with ID:", newId);
+        res.status(200).json({ message: "Review added successfully", id: newId });
       }
-    });
-  } catch (error) {
-    console.error("서버 오류:", error);
-    res.status(500).json({ error: "서버 오류" });
-  }
+    );
+  });
 });
 
 

@@ -95,43 +95,59 @@ const handleAddTask = (e) => {
 
 
 const toggleTask = (index) => {
-  const updatedTasks = [...tasks];
-  const taskToToggle = updatedTasks[index];
+  const taskToToggle = tasks[index];
 
   if (!taskToToggle) {
     console.error("Task is undefined at index:", index);
     return;
   }
 
-  taskToToggle.completed = !taskToToggle.completed; // 상태 토글
-  setTasks(updatedTasks);
+  // is_completed 상태를 토글
+  taskToToggle.completed = !taskToToggle.completed;
+  setTasks([...tasks]);
+
+  // id 값을 명시적으로 처리
+  const taskId = taskToToggle.id;
+
+  if (taskId === undefined || taskId === null) {
+    console.error("Task ID is missing or invalid:", taskToToggle);
+    return;
+  }
 
   axios
-    .get("http://localhost:3000/api/session") // 세션 확인 API 호출
+    .get("http://localhost:3000/api/session")
     .then((response) => {
       const userId = response.data.user_id;
-      if (userId) {
-        // 서버에 업데이트 요청
-        axios
-          .put("http://localhost:3000/api/routinetoggle", {
-            id: taskToToggle.id,
-            user_id: userId,
-            is_completed: taskToToggle.completed, // 상태를 서버에 저장
-          })
-          .then((res) => console.log("Task toggled successfully:", res.data))
-          .catch((err) => {
-            console.error("Error updating task:", err);
-            // 상태 복구 (에러 발생 시)
-            taskToToggle.completed = !taskToToggle.completed;
-            setTasks([...updatedTasks]);
-          });
-      } else {
-        alert("로그인이 필요합니다.");
-      }
-    })
-    .catch((err) => console.error("세션 확인 오류:", err));
-};
 
+      if (!userId) {
+        alert("로그인이 필요합니다.");
+        return;
+      }
+
+      const payload = {
+        id: taskId, // 0일 경우에도 전달됨
+        user_id: userId,
+        is_completed: taskToToggle.completed,
+      };
+
+      console.log("Payload sent to server:", payload);
+
+      axios
+        .put("http://localhost:3000/api/routinetoggle", payload)
+        .then((res) => {
+          console.log("Task toggled successfully:", res.data);
+        })
+        .catch((err) => {
+          console.error("Error updating task:", err.response?.data || err.message);
+          // 에러 발생 시 상태 복구
+          taskToToggle.completed = !taskToToggle.completed;
+          setTasks([...tasks]);
+        });
+    })
+    .catch((err) => {
+      console.error("세션 확인 오류:", err);
+    });
+};
 
   // Delete tasks
   const deleteTask = (index) => {

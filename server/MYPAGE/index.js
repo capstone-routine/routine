@@ -39,7 +39,7 @@ router.get("/myreviewfetch", (req, res) => {
     const query = `
         SELECT success_rate, achievement, improvement
         FROM review
-        WHERE user_id = ?
+        WHERE user_id = ? 
     `;
   
     db.query(query, [user_id], (err, results) => {
@@ -57,26 +57,52 @@ router.get("/myreviewfetch", (req, res) => {
     });
   });
   
-  router.delete('/deletereview', async (req, res) => {
-    const { user_id } = req.body; // 클라이언트에서 user_id를 전달받음
+  router.delete("/deletereview", (req, res) => {
+    const { index, user_id } = req.body;
 
-    if (!user_id) {
-        return res.status(400).json({ error: "Bad request: user_id is required." });
+    console.log("Delete review request received:", req.body);
+
+    if (typeof index === "undefined" || typeof user_id === "undefined") {
+        return res.status(400).json({ error: "Missing required fields: index and user_id are required" });
     }
 
-    try {
-        const query = "UPDATE review SET achievement = NULL, improvement = NULL WHERE user_id = ?";
-        const [result] = await db.promise().execute(query, [user_id]);
-
-        if (result.affectedRows === 0) {
-            return res.status(404).json({ error: "No review found for this user." });
+    // Step 1: 삭제할 리뷰 가져오기
+    const selectQuery = `SELECT id FROM review WHERE user_id = ? LIMIT ?, 1`;
+    db.query(selectQuery, [user_id, index], (selectErr, selectResult) => {
+        if (selectErr || selectResult.length === 0) {
+            console.error("Error finding review to delete:", selectErr);
+            return res.status(500).json({ error: "Failed to find review to delete" });
         }
 
-        res.status(200).json({ message: "Review deleted successfully." });
-    } catch (error) {
-        console.error("Error deleting review:", error);
-        res.status(500).json({ error: "Server error." });
-    }
+        const reviewId = selectResult[0].id;
+
+        // Step 2: 리뷰 삭제
+        const deleteQuery = `DELETE FROM review WHERE id = ? AND user_id = ?`;
+        db.query(deleteQuery, [reviewId, user_id], (deleteErr, deleteResult) => {
+            if (deleteErr) {
+                console.error("Error deleting review:", deleteErr);
+                return res.status(500).json({ error: "Failed to delete the review" });
+            }
+
+            if (deleteResult.affectedRows === 0) {
+                return res.status(404).json({ error: "Review not found" });
+            }
+
+            console.log("Review deleted successfully");
+
+            // Step 3: ID 재정렬
+            const updateQuery = `UPDATE review SET id = id - 1 WHERE id > ? AND user_id = ? ORDER BY id`;
+            db.query(updateQuery, [reviewId, user_id], (updateErr, updateResult) => {
+                if (updateErr) {
+                    console.error("Error updating IDs:", updateErr);
+                    return res.status(500).json({ error: "Failed to update IDs" });
+                }
+
+                console.log("IDs updated successfully");
+                res.status(200).json({ message: "Review deleted and IDs updated successfully" });
+            });
+        });
+    });
 });
 
 
