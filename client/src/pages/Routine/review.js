@@ -8,21 +8,67 @@ function Review({ successRate }) {
     improvements: "",
   });
 
-  const [localSuccessRate, setLocalSuccessRate] = useState(successRate || 0);
+  const [localSuccessRate, setLocalSuccessRate] = useState(0);
+  const [userId, setUserId] = useState(null);
 
+  // 세션에서 user_id 가져오고 review 데이터 로드
   useEffect(() => {
     axios
-      .get("/api/successRate")
-      .then((response) => setLocalSuccessRate(response.data.successRate))
-      .catch((err) => console.error("Error fetching success rate:", err));
-  }, []);
+      .get("http://localhost:3000/api/session")
+      .then((response) => {
+        const userId = response.data.user_id;
+        setUserId(userId);
+
+        if (userId) {
+          // review 테이블에서 데이터 가져오기
+          axios
+            .get(`http://localhost:3000/api/reviewfetch?user_id=${userId}`)
+            .then((res) => {
+              console.log("Fetched data:", res.data);
+              const { success_rate, achievement, improvement } = res.data;
+              setLocalSuccessRate(success_rate || 0);
+              setFeedback({
+                strengths: achievement || "",
+                improvements: improvement || "",
+              });
+              console.log("Feedback state after fetch:", feedback);
+            })
+            .catch((err) =>
+              console.error("Error fetching review data:", err)
+            );
+        }
+      })
+      .catch((err) => console.error("Error fetching session data:", err));
+  }, [userId]);
 
   const handleSubmit = () => {
+    if (!userId) {
+      alert("로그인이 필요합니다.");
+      return;
+    }
+  
+    console.log("Submitting data:", {
+      user_id: userId,
+      strengths: feedback.strengths,
+      improvements: feedback.improvements,
+    });
+  
     axios
-      .post("/api/review", { successRate: localSuccessRate, ...feedback })
-      .then(() => alert("Review has been submitted."))
-      .catch((err) => console.error("Error saving review:", err));
+      .post("http://localhost:3000/api/reviewinput", {
+        user_id: userId,
+        strengths: feedback.strengths,
+        improvements: feedback.improvements,
+      })
+      .then((response) => {
+        console.log("Response from server:", response.data);
+        alert("업데이트 성공.");
+      })
+      .catch((err) => {
+        console.error("Error updating review:", err);
+        alert("Error updating review. Check console for details.");
+      });
   };
+  
 
   return (
     <Container>

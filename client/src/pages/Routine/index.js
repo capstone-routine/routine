@@ -167,17 +167,78 @@ const toggleTask = (index) => {
   
 
 // Calculate and send success rate to the server
-const submitSuccessRate = () => {
-  const mainTasks = tasks.filter((task) => task?.type === "2");
-  const completedTasks = mainTasks.filter((task) => task.completed);
-  const successRate =
-    mainTasks.length > 0 ? Math.round((completedTasks.length / mainTasks.length) * 100) : 0;
+const submitSuccessRate = async () => {
+  try {
+    const sessionResponse = await axios.get("http://localhost:3000/api/session");
+    const userId = sessionResponse.data.user_id;
 
-  // Send success rate to the server
+    if (!userId) {
+      alert("로그인이 필요합니다.");
+      return;
+    }
+
+    const routineResponse = await axios.get(`http://localhost:3000/api/routinefetch?user_id=${userId}`);
+    const tasks = routineResponse.data.tasks || [];
+
+    // 필터링 조건 수정
+    const mainTasks = tasks.filter((task) => task.type === "main일정");
+    const completedTasks = mainTasks.filter((task) => task.is_completed == 1);
+
+    const successRate = mainTasks.length > 0
+      ? Math.round((completedTasks.length / mainTasks.length) * 100)
+      : 100;
+
+    console.log("Total main tasks:", mainTasks.length);
+    console.log("Completed tasks:", completedTasks.length);
+    console.log("Calculated success rate:", successRate);
+
+    await axios.post("http://localhost:3000/api/routinesubmit", {
+      user_id: userId,
+      success_rate: successRate,
+    });
+
+    alert(`성공률이 저장되었습니다. (${successRate}%) has been saved!`);
+    window.location.href = "/routine/review";
+  } catch (error) {
+    console.error("Error submitting success rate:", error);
+    alert("서버 오류가 발생했습니다.");
+  }
+};
+
+
+
+
+
+// Reset 버튼 클릭 핸들러
+const handleReset = () => {
   axios
-    .post("/api/successRate", { successRate })
-    .then(() => alert("Success rate has been submitted."))
-    .catch((err) => console.error("Error submitting success rate:", err));
+    .get("http://localhost:3000/api/session") // 세션 확인 API
+    .then((response) => {
+      if (response.data.user_id) {
+        const userId = response.data.user_id; // 세션에서 가져온 user_id
+
+        // Reset API 호출
+        axios
+          .delete("http://localhost:3000/api/routinereset", {
+            data: { user_id: userId }, // user_id를 요청에 포함
+          })
+          .then(() => {
+            setTasks(Array(10).fill(null)); // 화면 상태 초기화
+            console.log("모든 루틴 삭제 성공");
+            alert("루틴이 초기화되었습니다.");
+          })
+          .catch((err) => {
+            console.error("루틴 초기화 실패:", err);
+            alert("루틴 초기화 중 오류가 발생했습니다.");
+          });
+      } else {
+        alert("로그인이 필요합니다.");
+      }
+    })
+    .catch((err) => {
+      console.error("세션 확인 오류:", err);
+      alert("세션 확인 중 오류가 발생했습니다.");
+    });
 };
 
 const typeMapping = {
@@ -224,7 +285,7 @@ return (
     <TimeBox>
       <ButtonRow>
         <Button>Time-box</Button>
-        <Button onClick={() => setTasks(Array(10).fill(null))}>리셋</Button>
+        <Button onClick={handleReset}>리셋</Button>
         <Button onClick={submitSuccessRate}>제출</Button>
       </ButtonRow>
       {/* Task Addition */}

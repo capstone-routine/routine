@@ -33,4 +33,28 @@ router.get('/userdata', async (req, res) => {
     }
 });
 
+router.get("/myreviewfetch", (req, res) => {
+    const { user_id } = req.query;
+  
+    const query = `
+        SELECT success_rate, achievement, improvement
+        FROM review
+        WHERE user_id = ?
+    `;
+  
+    db.query(query, [user_id], (err, results) => {
+        if (err) {
+            console.error("Error fetching review:", err);
+            return res.status(500).json({ error: "Server error" });
+        }
+  
+        if (results.length > 0) {
+            console.log("Fetched review data:", results);
+            res.json(results); // 모든 리뷰 데이터 반환
+        } else {
+            res.status(404).json({ error: "No reviews found" });
+        }
+    });
+  });
+  
 module.exports = router;
