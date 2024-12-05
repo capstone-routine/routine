@@ -75,13 +75,25 @@ function MyPage() {
     }
   };
 
-  const deleteReview = async (id) => {
+  const deleteReview = async () => {
     try {
-      await axios.delete(`http://localhost:3000/api/deletereview`, {
-        data: { id }, // 요청 본문
-        headers: { "Content-Type": "application/json" },
+      const sessionResponse = await axios.get("http://localhost:3000/api/session");
+      const userId = sessionResponse.data.user_id;
+
+      await axios.delete("http://localhost:3000/api/deletereview", {
+        data: { user_id: userId },
       });
-      setReviews(reviews.filter((review) => review.id !== id)); // 삭제된 리뷰 제외
+
+      // 로컬 상태에서 데이터 초기화
+      setReviews((prevReviews) =>
+        prevReviews.map((review) => ({
+          ...review,
+          strengths: null,
+          improvements: null,
+        }))
+      );
+
+      alert("Review deleted successfully.");
     } catch (error) {
       setError("Failed to delete the review.");
       console.error("Error deleting review:", error);

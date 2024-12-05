@@ -57,4 +57,27 @@ router.get("/myreviewfetch", (req, res) => {
     });
   });
   
+  router.delete('/deletereview', async (req, res) => {
+    const { user_id } = req.body; // 클라이언트에서 user_id를 전달받음
+
+    if (!user_id) {
+        return res.status(400).json({ error: "Bad request: user_id is required." });
+    }
+
+    try {
+        const query = "UPDATE review SET achievement = NULL, improvement = NULL WHERE user_id = ?";
+        const [result] = await db.promise().execute(query, [user_id]);
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: "No review found for this user." });
+        }
+
+        res.status(200).json({ message: "Review deleted successfully." });
+    } catch (error) {
+        console.error("Error deleting review:", error);
+        res.status(500).json({ error: "Server error." });
+    }
+});
+
+
 module.exports = router;
