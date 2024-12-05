@@ -122,16 +122,18 @@ const LeftSide = styled.div`
 
 const Intro = styled.div`
   width: 100%;
-  height: 650px;
+  min-height: 650px; /* 최소 높이를 설정 */
   background-color: ${secondaryColor};
+  display: flex;
+  flex-direction: column; /* 내용이 아래로 쌓이도록 설정 */
 `;
 
 const Wrap = styled.div`
   display: flex;
   width: 1280px;
-  height: 100%;
   margin: 0 auto;
-`;
+  flex-grow: 1; /* flex-grow로 내부 콘텐츠가 여유 공간을 채우도록 설정 */
+`
 
 const MainContent = styled.div`
   flex: 3;
