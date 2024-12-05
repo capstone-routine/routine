@@ -60,7 +60,6 @@ const Number = styled.div`
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 50%;
     margin-right: 10px;
 `;
 

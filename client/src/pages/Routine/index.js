@@ -217,16 +217,24 @@ return (
       <Title>메인 목적</Title>
       <InputContainer>
         {contentData.mainGoal.map((goal, index) => (
-          <Input key={index} value={goal} readOnly />
+          //<Input key={index} value={goal} readOnly />
+          <ListItem key={index}>
+              <Number>{index + 1}</Number>
+              <ValueContainer>
+                <Placeholder>{goal || " "}</Placeholder>
+              </ValueContainer>
+          </ListItem>
         ))}
       </InputContainer>
     </Header>
     <TimeBox>
-      <ButtonRow>
-        <Button>Time-box</Button>
+    <ButtonRow>
+      <TimeBoxButton>Time-box</TimeBoxButton>
+      <ActionButtons>
         <Button onClick={() => setTasks(Array(10).fill(null))}>리셋</Button>
         <Button onClick={submitSuccessRate}>제출</Button>
-      </ButtonRow>
+      </ActionButtons>
+    </ButtonRow>
       {/* Task Addition */}
       <AddTaskContainer>
         <TaskTypeButton
@@ -299,8 +307,41 @@ return (
 export default Routine;
 
 // Styled Components
+
+const ListItem = styled.div`
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+`;
+
+const Number = styled.div`
+  width: 30px;
+  height: 30px;
+  background: black;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  margin-right: 10px;
+`;
+
+const ValueContainer = styled.div`
+  display: flex;
+  align-items: center;
+  flex: 1;
+`;
+
+const Placeholder = styled.div`
+  flex: 1;
+  padding: 4px;
+  border: 1px solid ${secondaryColor};
+  border-radius: 4px;
+  min-height: 20px;
+  background: white;
+`;
+
 const Container = styled.div`
-font-family: Arial, sans-serif;
 width: 100%;
 max-width: 600px;
 margin: 0 auto;
@@ -316,14 +357,15 @@ border-radius: 10px;
 `;
 
 const Title = styled.h3`
-color: #000;
+color: white;
 margin: 0;
+
 `;
 
 const InputContainer = styled.div`
-display: flex;
 gap: 10px;
 margin-top: 10px;
+position: relative;
 `;
 
 const Input = styled.input`
@@ -343,22 +385,41 @@ border-radius: 10px;
 `;
 
 const ButtonRow = styled.div`
-display: flex;
-justify-content: space-between;
-margin-bottom: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+`;
+
+const TimeBoxButton = styled.button`
+  flex: 2; /* TimeBox 버튼이 더 길게 */
+  padding: 2px 0px; /* 넉넉한 크기 */
+  background-color: #333;
+  color: #fff;
+  border: 2px solid #333;
+  border-radius: 0; /* 둥근 모서리 제거 */
+  font-size: 16px;
+  font-weight: bold;
+  pointer-events: none; /* 클릭 비활성화 */
+  margin-right: 20px;
+`;
+
+const ActionButtons = styled.div`
+  display: flex;
+  gap: 10px;
 `;
 
 const Button = styled.button`
-padding: 10px 20px;
-background-color: #333;
-color: #fff;
-border: none;
-border-radius: 5px;
-font-size: 14px;
-
-&:hover {
-  background-color: #555;
-}
+  flex: 1;
+  padding: 4px 5px;
+  background-color: #333;
+  color: #fff;
+  border: 2px solid #333;
+  border-radius: 0; /* 둥근 모서리 제거 */
+  font-size: 14px;
+  &:hover {
+    background-color: #555;
+  }
 `;
 
 const TaskList = styled.div`
@@ -391,6 +452,7 @@ const AddTaskContainer = styled.div`
 margin-top: 20px;
 display: flex;
 gap: 10px;
+
 `;
 
 const TaskTypeButton = styled.button`
