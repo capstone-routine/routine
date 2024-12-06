@@ -2,6 +2,13 @@ import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { primaryColor, tertiaryColor } from '../../styles/colors';
+import balancedImage from '../../assets/img/Balanced.png';
+import perfectionistImage from '../../assets/img/Perfectionist.png';
+import spontaneousImage from '../../assets/img/Spontaneous.png';
+import socialImage from '../../assets/img/Social.png';
+import emotionalImage from '../../assets/img/Emotional.png';
+import goalOrientedImage from '../../assets/img/GoalOriented.png';
 
 function MyPage() {
   const [userData, setUserData] = useState({ name: "", type: "" });
@@ -17,6 +24,15 @@ function MyPage() {
     "Social Type": "/typetest/result4",
     "Emotional Type": "/typetest/result5",
     "Goal-Oriented Type": "/typetest/result6",
+  };
+
+  const typeImageMap = {
+    "Balanced Type": balancedImage,
+    "Perfectionist": perfectionistImage,
+    "Spontaneous Type": spontaneousImage,
+    "Social Type": socialImage,
+    "Emotional Type": emotionalImage,
+    "Goal-Oriented Type": goalOrientedImage,
   };
 
   useEffect(() => {
@@ -101,18 +117,25 @@ function MyPage() {
 };
 
   return (
+    <Wrap>
+    <Header>My Page</Header>
     <Container>
-      <Header>My Page</Header>
       <UserInfo>
         <UserField>
-          <Label>Name:</Label>
+          <Label>Name</Label>
           <Value>{userData.name || "Loading..."}</Value>
         </UserField>
         <UserField>
-          <Label>Type:</Label>
-          <TypeLink onClick={handleTypeClick}>
-            {userData.type || "No type assigned"}
-          </TypeLink>
+          <Label>Type</Label>
+          <TypeDisplay>
+            <TypeImage
+                src={typeImageMap[userData.type] || ""}
+                alt={userData.type || "Unknown"}
+              />
+            <TypeLink onClick={handleTypeClick}>
+              {userData.type || "No type assigned"}
+            </TypeLink>
+          </TypeDisplay>
         </UserField>
       </UserInfo>
 
@@ -124,20 +147,22 @@ function MyPage() {
             <ReviewCard key={review.id}>
               <ReviewHeader>
                 <DayLabel>{`${index + 1}일차`}</DayLabel>
-                <SuccessRate>{review.successRate}%</SuccessRate>
               </ReviewHeader>
               <ReviewBody>
-                <Feedback>
-                  <FeedbackLabel>Strengths:</FeedbackLabel>
-                  <FeedbackText>{review.strengths || "No data"}</FeedbackText>
-                </Feedback>
-                <Feedback>
-                  <FeedbackLabel>Areas for Improvement:</FeedbackLabel>
-                  <FeedbackText>{review.improvements || "No data"}</FeedbackText>
-                </Feedback>
+                <SuccessRate>{review.successRate}%</SuccessRate>
+                <SideContainer>
+                  <Feedback>
+                    <FeedbackLabel>성취한 점</FeedbackLabel>
+                    <FeedbackText>{review.strengths || "No data"}</FeedbackText>
+                  </Feedback>
+                  <Feedback>
+                    <FeedbackLabel>개전할 점</FeedbackLabel>
+                    <FeedbackText>{review.improvements || "No data"}</FeedbackText>
+                  </Feedback>
+                </SideContainer>
               </ReviewBody>
               <DeleteButton onClick={() => deleteReview(index)}>
-                Delete
+                삭제
               </DeleteButton>
             </ReviewCard>
           ))
@@ -146,26 +171,40 @@ function MyPage() {
         )}
       </ReviewSection>
     </Container>
+    </Wrap>
   );
 }
 
 export default MyPage;
 
 // Styled Components
-const Container = styled.div`
+
+const Wrap = styled.div`
   width: 100%;
   max-width: 800px;
   margin: 0 auto;
-  padding: 20px;
   background-color: #fff;
   border-radius: 10px;
-  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+
+`;
+
+const Container = styled.div`
+    padding: 40px;
 `;
 
 const Header = styled.h1`
+  font-size: 1.8em;
+  font-weight: bold;
   text-align: center;
-  color: #333;
+  background-color: ${primaryColor};
+  color: white;
+  margin-top: 50px;
+  padding: 10px 0;
   margin-bottom: 30px;
+  width: 100%;
+  padding: 15px;
 `;
 
 const UserInfo = styled.div`
@@ -174,27 +213,53 @@ const UserInfo = styled.div`
 
 const UserField = styled.div`
   display: flex;
-  justify-content: space-between;
+  flex-direction: column; /* Align items vertically */
   margin-bottom: 10px;
 `;
 
 const Label = styled.span`
   font-weight: bold;
-  color: #555;
+  color: #444;
+  margin-bottom: 5px; /* Add spacing between Label and Value */
 `;
 
 const Value = styled.span`
   color: #333;
+  margin: 20px;
+  font-size: 3rem;
+  color: #ff8082;
+  font-weight: 500;
 `;
 
-const TypeLink = styled(Value)`
+const TypeLink = styled.div`
+  margin: 20px;
   cursor: pointer;
-  text-decoration: underline;
-  color: #007bff;
+  text-decoration: none;
+  color: white;
+  background-color: #ff8082;
+  width: 250px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  padding-left: 20px;
+`;
 
-  &:hover {
-    color: #0056b3;
-  }
+const TypeDisplay = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 20px;
+  border: 1px solid #ff8082;
+  padding-left: 20px;
+  width: 500px;
+  border-radius: 20px;
+`;
+
+const TypeImage = styled.img`
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+  border-radius: 50%;
 `;
 
 const ReviewSection = styled.div`
@@ -212,6 +277,7 @@ const ReviewCard = styled.div`
   border-radius: 10px;
   background-color: #f9f9f9;
   box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+  position: relative;
 `;
 
 const ReviewHeader = styled.div`
@@ -222,42 +288,63 @@ const ReviewHeader = styled.div`
 
 const DayLabel = styled.span`
   font-weight: bold;
-  color: #ff6f61;
+  background-color: ${tertiaryColor};
+  color: white;
+  width: 80px;
+  height: 25px;
+  text-align: center;
+  border-radius: 5px;
 `;
 
 const SuccessRate = styled.span`
-  font-size: 1.2rem;
-  color: #333;
+  font-size: 3rem;
+  font-weight: 500;
+  display: flex; 
+  justify-content: center;
+  align-items: center; 
+  width: 130px;
 `;
+
+const SideContainer = styled.div``;
 
 const ReviewBody = styled.div`
   display: flex;
-  flex-direction: column;
+  //flex-direction: column;
   gap: 10px;
 `;
 
-const Feedback = styled.div``;
+const Feedback = styled.div`
+  display: flex;
+`;
 
 const FeedbackLabel = styled.span`
-  font-weight: bold;
-  color: #555;
+  background-color: black;
+  color: white;
+  width: 70px;
+  height: 25px;
 `;
 
 const FeedbackText = styled.p`
-  margin: 0;
   color: #333;
+  height: 60px;
+  margin-left: 20px;
+  margin-top: 3px;
 `;
 
 const DeleteButton = styled.button`
-  background-color: #ff4d4f;
-  color: #fff;
+  position: absolute;
+  top: 10px; /* 부모 컨테이너의 하단에서 10px */
+  right: 10px; /* 부모 컨테이너의 오른쪽에서 10px */
+  background-color: ${tertiaryColor};
   border: none;
+  color: white;
   padding: 8px 12px;
   border-radius: 5px;
   cursor: pointer;
+  height: 35px;
 
   &:hover {
-    background-color: #d9363e;
+    background-color: #654995;
   }
 `;
 

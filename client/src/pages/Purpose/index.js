@@ -123,7 +123,6 @@ const LeftSide = styled.div`
 const Intro = styled.div`
   width: 100%;
   min-height: 650px; /* 최소 높이를 설정 */
-  background-color: ${secondaryColor};
   display: flex;
   flex-direction: column; /* 내용이 아래로 쌓이도록 설정 */
 `;

@@ -117,6 +117,7 @@ export default PurposeInput;
 const Intro = styled.div`
     width: 100%;
     height: 650px;
+    background-color: white;
 `;
 
 const Wrap = styled.div`

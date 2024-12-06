@@ -1,6 +1,7 @@
 {
     "types": [
         {
+            "id": 1,
             "name": "Balanced Type",
             "questions": [
                 {
@@ -18,6 +19,7 @@
             ]
         },
         {
+            "id": 2,
             "name": "Perfectionist",
             "questions": [
                 {
@@ -35,6 +37,7 @@
             ]
         },
         {
+            "id": 3,
             "name": "Spontaneous Type",
             "questions": [
                 {
@@ -52,6 +55,7 @@
             ]
         },
         {
+            "id": 4,
             "name": "Social Type",
             "questions": [
                 {
@@ -67,6 +71,7 @@
             ]
         },
         {
+            "id": 5,
             "name": "Emotional Type",
             "questions": [
                 {
@@ -81,6 +86,7 @@
             ]
         },
         {
+            "id": 6,
             "name": "Goal-Oriented Type",
             "questions": [
                 {

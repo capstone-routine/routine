@@ -58,6 +58,7 @@ function Review({ successRate }) {
   
 
   return (
+    <Wrap>
     <Container>
       <Header>Review Submission</Header>
       <SuccessRate>
@@ -86,6 +87,7 @@ function Review({ successRate }) {
       </FeedbackSection>
       <SubmitButton onClick={handleSubmit}>Submit</SubmitButton>
     </Container>
+    </Wrap>
   );
 }
 
@@ -93,13 +95,19 @@ export default Review;
 
 
 // Styled Components
+
+const Wrap = styled.div`
+  height: 600px;
+`;
+
 const Container = styled.div`
   padding: 20px;
   background-color: #f9f9f9;
   border-radius: 10px;
   box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
   max-width: 600px;
-  margin: 20px auto;
+  margin: auto;
+  margin-top: 50px;
 `;
 
 const Header = styled.h3`
