@@ -51,34 +51,38 @@ function Purpose() {
   };
 
   const handleDelete = (index) => {
-    const selectedNumber = index + 1; // index는 0부터 시작하므로 +1
-    axios
-      .post("http://localhost:3000/api/purposedelete", {
-        user_id: "frost", // 로그인된 사용자의 ID를 사용해야 함
-        selectedNumber,
-      })
-      .then((response) => {
-        alert(response.data.message);
+    axios.get("http://localhost:3000/api/session")
+        .then((sessionResponse) => {
+            const user_id = sessionResponse.data.user_id; // Get the logged-in user's ID
+            if (!user_id) throw new Error("User not logged in");
 
-        // 상태 업데이트: 삭제된 데이터를 빈 문자열로 변경
-        setContentData((prev) => {
-          const updatedMainGoal = [...prev.mainGoal];
-          const updatedAchievedList = [...prev.achievedList];
+            return axios.post("http://localhost:3000/api/purposedelete", {
+                user_id, 
+                selectedNumber: index + 1,
+            });
+        })
+        .then((response) => {
+            alert(response.data.message);
 
-          updatedMainGoal[index] = ""; // 삭제된 타이틀 비우기
-          updatedAchievedList[index] = ""; // 삭제된 컨텐츠 비우기
+            // Update the state to reflect the deletion
+            setContentData((prev) => {
+                const updatedMainGoal = [...prev.mainGoal];
+                const updatedAchievedList = [...prev.achievedList];
 
-          return {
-            mainGoal: updatedMainGoal,
-            achievedList: updatedAchievedList,
-          };
+                updatedMainGoal[index] = ""; 
+                updatedAchievedList[index] = ""; 
+
+                return {
+                    mainGoal: updatedMainGoal,
+                    achievedList: updatedAchievedList,
+                };
+            });
+        })
+        .catch((error) => {
+            console.error("Error during deletion:", error);
+            alert("An error occurred while deleting the data.");
         });
-      })
-      .catch((error) => {
-        console.error("삭제 중 오류 발생:", error);
-        alert("삭제 중 문제가 발생했습니다.");
-      });
-  };
+    };
 
   return (
     <Intro>

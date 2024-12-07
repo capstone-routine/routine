@@ -151,6 +151,9 @@ router.post('/purposedelete', (req, res) => {
             console.error("데이터 삭제 중 오류 발생:", err);
             return res.status(500).json({ message: "서버 오류" });
         }
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ message: "No data found to delete." });
+        }
 
         res.status(200).json({ message: "데이터가 성공적으로 삭제되었습니다." });
     });
