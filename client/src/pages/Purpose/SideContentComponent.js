@@ -6,22 +6,32 @@ import { MessageList, MessageInput, TypingIndicator } from "@chatscope/chat-ui-k
 
 const API_KEY = ""; // API key here
 
-const systemMessage = {
-  role: "system",
-  content:
-    "당신은 유저의 메인 목적을 이루기 위해서 필요한 수행 리스트를 6단계로 뽑아주는 AI챗봇입니다.",
-};
-
 function SideContent() {
+
+  const systemMessage = {
+    role: "system",
+    content:
+      "당신은 유저의 메인 목적을 이루기 위해서 필요한 수행 리스트를 6단계로 뽑아주는 AI챗봇입니다.",
+  };
+
   const [messages, setMessages] = useState([
     {
-      message:
-        "안녕하세요 저는 당신의 메인 목적을 이루기 위해서 필요한 수행 리스트를 6단계로 뽑아주는 AI챗봇입니다. 메인 목적을 적어주세요:)",
+      message: `안녕하세요 저는 당신의 메인 목적을 이루기 위해서 필요한 수행 리스트를 6단계로 뽑아주는 AI챗봇입니다.
+메인 목적을 적어주세요:)`, // 줄바꿈 포함된 초기 메시지
       sentTime: "just now",
       sender: "ChatGPT",
     },
   ]);
   const [isTyping, setIsTyping] = useState(false);
+
+  const formatMessageWithLineBreaks = (text) => {
+    return text.split("\n").map((line, index) => (
+      <span key={index}>
+        {line}
+        <br />
+      </span>
+    ));
+  };
 
   const handleSend = async (message) => {
     const newMessage = {
@@ -46,7 +56,7 @@ function SideContent() {
     const apiRequestBody = {
       model: "gpt-3.5-turbo",
       messages: [systemMessage, ...apiMessages],
-      max_tokens: 100,
+      max_tokens: 500,
     };
 
     await fetch("https://api.openai.com/v1/chat/completions", {
@@ -87,7 +97,7 @@ function SideContent() {
                 )}
               </MessageIcon>
               <StyledMessage className={message.sender === "ChatGPT" ? "chatgpt" : "user"}>
-                {message.message}
+                {formatMessageWithLineBreaks(message.message)}
               </StyledMessage>
             </MessageRow>
           ))}
