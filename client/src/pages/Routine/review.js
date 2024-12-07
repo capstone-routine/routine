@@ -1,6 +1,8 @@
-import React, { useState, useEffect } from "react"; // Import useEffect
+import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import axios from "axios";
+import { primaryColor } from "../../styles/colors";
+import backgroundImage from "../../assets/img/testBackground.png";
 
 function Review({ successRate }) {
   const [feedback, setFeedback] = useState({
@@ -8,128 +10,102 @@ function Review({ successRate }) {
     improvements: "",
   });
 
-  const [localSuccessRate, setLocalSuccessRate] = useState(0);
-  const [userId, setUserId] = useState(null);
+  const [localSuccessRate, setLocalSuccessRate] = useState(successRate || 0);
 
-  // 세션에서 user_id 가져오고 review 데이터 로드
   useEffect(() => {
     axios
-      .get("http://localhost:3000/api/session")
-      .then((response) => {
-        const userId = response.data.user_id;
-        setUserId(userId);
-  
-        if (userId) {
-          axios
-            .get(`http://localhost:3000/api/reviewfetch?user_id=${userId}`)
-            .then((res) => {
-              console.log("Fetched latest review data:", res.data);
-              const { success_rate, achievement, improvement } = res.data;
-              setLocalSuccessRate(success_rate || 0);
-              setFeedback({
-                strengths: achievement || "",
-                improvements: improvement || "",
-              });
-            })
-            .catch((err) => console.error("Error fetching review data:", err));
-        }
-      })
-      .catch((err) => console.error("Error fetching session data:", err));
+      .get("/api/successRate")
+      .then((response) => setLocalSuccessRate(response.data.successRate))
+      .catch((err) => console.error("Error fetching success rate:", err));
   }, []);
-  
 
   const handleSubmit = () => {
     axios
-      .post("http://localhost:3000/api/reviewinput", {
-        user_id: userId,
-        strengths: feedback.strengths,
-        improvements: feedback.improvements,
-      })
-      .then((res) => {
-        console.log("Review updated successfully:", res.data);
-        alert("Review updated successfully!");
-      })
-      .catch((err) => {
-        console.error("Error updating review:", err);
-        alert("Error updating review. Check console for details.");
-      });
+      .post("/api/review", { successRate: localSuccessRate, ...feedback })
+      .then(() => alert("Review has been submitted."))
+      .catch((err) => console.error("Error saving review:", err));
   };
-  
-  
 
   return (
-    <Wrap>
-    <Container>
-      <Header>Review Submission</Header>
-      <SuccessRate>
-        <Label>Success Rate:</Label>
-        <Rate>{localSuccessRate}%</Rate>
-      </SuccessRate>
-      <FeedbackSection>
-        <label>
-          성취한 점:
-          <TextArea
-            value={feedback.strengths}
-            onChange={(e) =>
-              setFeedback({ ...feedback, strengths: e.target.value })
-            }
-          />
-        </label>
-        <label>
-          개선할 점:
-          <TextArea
-            value={feedback.improvements}
-            onChange={(e) =>
-              setFeedback({ ...feedback, improvements: e.target.value })
-            }
-          />
-        </label>
-      </FeedbackSection>
-      <SubmitButton onClick={handleSubmit}>Submit</SubmitButton>
-    </Container>
-    </Wrap>
+    <Page>
+      <Container>
+        <Header>Review Submission</Header>
+        <SuccessRate>
+          <Label>Success Rate:</Label>
+          <Rate>{localSuccessRate}%</Rate>
+        </SuccessRate>
+        <FeedbackSection>
+          <label>
+            성취한 점:
+            <TextArea
+              value={feedback.strengths}
+              onChange={(e) =>
+                setFeedback({ ...feedback, strengths: e.target.value })
+              }
+            />
+          </label>
+          <label>
+            개선할 점:
+            <TextArea
+              value={feedback.improvements}
+              onChange={(e) =>
+                setFeedback({ ...feedback, improvements: e.target.value })
+              }
+            />
+          </label>
+        </FeedbackSection>
+        <SubmitButton onClick={handleSubmit}>Submit</SubmitButton>
+      </Container>
+    </Page>
   );
 }
 
 export default Review;
 
-
 // Styled Components
-
-const Wrap = styled.div`
-  height: 600px;
+const Page = styled.div`
+  height: 70vh;
+  background-image: url(${backgroundImage});
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 `;
 
 const Container = styled.div`
+  width: 700px;
+  height: 400px;
   padding: 20px;
-  background-color: #f9f9f9;
+  background-color: #ffffff;
   border-radius: 10px;
-  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-  max-width: 600px;
-  margin: auto;
-  margin-top: 50px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 `;
 
 const Header = styled.h3`
   text-align: center;
-  color: #333;
+  font-weight: bold;
+  color: ${primaryColor};
   margin-bottom: 20px;
 `;
 
 const SuccessRate = styled.div`
   display: flex;
-  justify-content: space-between;
-  margin-bottom: 20px;
+  align-items: center;
+  margin-bottom: 40px;
 `;
 
 const Label = styled.span`
   font-weight: bold;
   font-size: 1.2rem;
   color: #555;
+  margin-right: 5px;
 `;
 
 const Rate = styled.span`
-  font-size: 1.5rem;
+  font-size: 1.2rem;
   color: #333;
 `;
 
@@ -144,22 +120,24 @@ const TextArea = styled.textarea`
   padding: 10px;
   border-radius: 5px;
   border: 1px solid #ccc;
-  font-size: 1rem;
+  font-size: 14px;
   resize: none;
 `;
 
 const SubmitButton = styled.button`
   margin-top: 20px;
-  width: 100%;
+  width: 150px;
   padding: 10px 20px;
-  border: none;
+  border: 1.5px solid ${primaryColor};
   border-radius: 5px;
-  background-color: #007bff;
+  background-color: ${primaryColor};
   color: white;
   font-size: 1.2rem;
   cursor: pointer;
+  align-self: center;
 
   &:hover {
-    background-color: #0056b3;
+    background-color: white;
+    color: ${primaryColor};
   }
 `;
