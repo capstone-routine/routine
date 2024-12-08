@@ -3,9 +3,9 @@ import styled from "styled-components";
 import botIcon from "../../assets/img/bot.png"; // Adjust the path if necessary
 import userIcon from "../../assets/img/profile.png"; // Adjust the path if necessary
 import { MessageList, MessageInput, TypingIndicator } from "@chatscope/chat-ui-kit-react";
-import config from "../../apikey.js";
+//import config from "../../apikey.js";
 
-const API_KEY = config.API_KEY; // API key here
+const API_KEY = process.env.REACT_APP_API_KEY;
 
 function SideContent() {
 
