@@ -117,6 +117,8 @@ const ChatWrapper = styled.div`
   display: flex;
   flex-direction: column;
   height: 100%;
+  max-height: 700px;
+  min-width: 350px;
   position: relative;
   background: #fff;
   border-radius: 10px;
