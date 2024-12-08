@@ -9,15 +9,16 @@
 | 김민수 | 조수빈 | 신수민 |
 
 ### 사용스택
-mysql, datagrip, react
+<img src="https://img.shields.io/badge/React-61DAFB?style=flat-square&logo=React&logoColor=white"/> <img src="https://img.shields.io/badge/JavaScript-F7DF1E?style=flat-square&logo=JavaScript&logoColor=white"/> <img src="https://img.shields.io/badge/styled components-DB7093?style=flat-square&logo=styledcomponents&logoColor=white"/>
+<img src="https://img.shields.io/badge/Axios-E01B22?style=flat-square"/> <img src="https://img.shields.io/badge/Mysql-000000?style=flat-square&logo=Mysql&logoColor=white"/>
 
 
 ### 실행방법
 npm install
 
-cd client
-npm insall
-npm start
+cd client<br/>
+npm insall<br/>
+npm start<br/>
 
-cd sever
+cd sever<br/>
 node index.js
