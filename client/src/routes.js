@@ -19,7 +19,7 @@ import SignUp from "./pages/SignUp";
 
 const routes = () => {
     return (
-        <BrowserRouter>
+        <BrowserRouter basename={process.env.PUBLIC_URL}>
             <Routes>
                 <Route element={<MainLayout />}>
                     <Route path="/" element={<Main />} />
